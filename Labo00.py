@@ -28,18 +28,27 @@ def triangSup(A):
     #check cuadrado
     if not esCuadrada(A):
         raise ValueError("La matriz no es cuadrada")
+
+    #creamos matriz U resultado
+    U = np.array(A)
     
     #gaussiana
-    for p in range(len(A)):
-        valorDiag = A[p][p]
-        for i in range(p+1, len(A)):
+    for p in range(len(U)):
+        valorDiag = U[p][p]
+        for i in range(p+1, len(U)):
             #k = escalar para anular la columna debajo del punto de la diag
-            k = A[i][p] / valorDiag
-            for j in range(p, len(A)):
-                A[i][j] -= k * A[p][j]
+            k = U[i][p] / valorDiag
+            for j in range(p, len(U)):
+                U[i][j] -= k * U[p][j]
 
     #preguntar si entendiste bien lo de hacer 0 la diag
-    for i in range(len(A)):
-        A[i][i] = 0
+    for i in range(len(U)):
+        U[i][i] = 0
 
-    return A
+    return U
+
+######################################################################################################
+#Ejercicio 3. Desarrollar una funci´on triangInf(A) que devuelva la matriz L
+#correspondiente a la matriz Triangular Inferior de A sin su diagonal.
+
+##depsues de charlar un rato con claudio me parece que hay algo raro aca. revisar despues
