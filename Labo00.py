@@ -1,4 +1,5 @@
 # pyrefly
+from numpy._typing import _nested_sequence
 import numpy as np
 
 
@@ -32,23 +33,95 @@ def triangSup(A):
     #creamos matriz U resultado
     U = np.array(A)
     
-    #gaussiana
-    for p in range(len(U)):
-        valorDiag = U[p][p]
-        for i in range(p+1, len(U)):
-            #k = escalar para anular la columna debajo del punto de la diag
-            k = U[i][p] / valorDiag
-            for j in range(p, len(U)):
-                U[i][j] -= k * U[p][j]
-
-    #preguntar si entendiste bien lo de hacer 0 la diag
+    #entiendo que no hay que hacer gaussiana y solamente ponerlo con 0 abajo de la diag
     for i in range(len(U)):
-        U[i][i] = 0
-
+        for j in range(i, len(U)):
+            if i == j:
+                U[i][j] = 0
+            if i < j:
+                U[i][j] = 0
+            
     return U
 
 ######################################################################################################
 #Ejercicio 3. Desarrollar una funci´on triangInf(A) que devuelva la matriz L
 #correspondiente a la matriz Triangular Inferior de A sin su diagonal.
 
-##depsues de charlar un rato con claudio me parece que hay algo raro aca. revisar despues
+def triangInf(A):#check cuadrado
+    if not esCuadrada(A):
+        raise ValueError("La matriz no es cuadrada")
+
+    #creamos matriz L resultado
+    L = np.array(A)
+
+    for i in range(len(L)):
+        for j in range(len(L)):
+            if i == j:
+                L[i][j] = 0
+            if i > j:
+                L[i][j] = 0
+            
+    return L
+
+######################################################################################################
+#Ejercicio 4. Desarrollar una funci´on diagonal(A) que devuelva la matriz D
+#correspondiente a la matriz diagonal de A.
+
+def diagonal(A):
+
+    D = np.array(A) 
+    for i in range(len(D)):
+        for j in range(len(D)):
+            if i != j:
+                D[i][j]=0
+    
+    return D        
+
+######################################################################################################
+#Ejercicio 5. Desarrollar una funci´on traza(A) que calcule la traza de una
+#matriz cualquiera A    
+#traza = suma de la diag
+
+def traza(A):
+    res=0
+    if not esCuadrada(A):
+        raise ValueError("La matriz no es cuadrada")
+
+    for i in range(len(A)):
+        res+= A[i][i]
+
+    return res
+
+######################################################################################################
+#Ejercicio 6. Desarrollar una funci´on traspuesta(A) que devuelva la matriz
+#traspuesta de A.
+
+def traspuesta(A):
+    if not A or not A[0]:
+        raise ValueError("La matriz no puede estar vacía")
+
+    AT = np.empty((len(A[0]), len(A)))
+
+    for i in range(len(A)):
+        for j in range(len(A[0])):
+            AT[j][i] = A[i][j]
+    
+    return AT
+
+######################################################################################################
+#Ejercicio 7. Desarrollar una funci´on esSimetrica(A) que devuelve True si la
+#matriz A es sim´etrica y False en caso contrario.
+
+def esSimetrica(A):
+    if not A or not A[0]:
+        raise ValueError("La matriz no puede estar vacía")
+
+    if not esCuadrada(A):
+        raise ValueError("La matriz no es cuadrada")
+
+    for i in range(len(A)):
+        for j in range(i+1, len(A)):
+            if A[i][j] != A[j][i]:
+                return False
+            
+    return True
