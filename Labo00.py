@@ -1,5 +1,4 @@
 # pyrefly
-from numpy._typing import _nested_sequence
 import numpy as np
 
 
@@ -38,7 +37,7 @@ def triangSup(A):
         for j in range(i, len(U)):
             if i == j:
                 U[i][j] = 0
-            if i < j:
+            if i > j:
                 U[i][j] = 0
             
     return U
@@ -47,7 +46,8 @@ def triangSup(A):
 #Ejercicio 3. Desarrollar una funci´on triangInf(A) que devuelva la matriz L
 #correspondiente a la matriz Triangular Inferior de A sin su diagonal.
 
-def triangInf(A):#check cuadrado
+def triangInf(A):
+    #check cuadrado
     if not esCuadrada(A):
         raise ValueError("La matriz no es cuadrada")
 
@@ -58,7 +58,7 @@ def triangInf(A):#check cuadrado
         for j in range(len(L)):
             if i == j:
                 L[i][j] = 0
-            if i > j:
+            if i < j:
                 L[i][j] = 0
             
     return L
@@ -68,7 +68,9 @@ def triangInf(A):#check cuadrado
 #correspondiente a la matriz diagonal de A.
 
 def diagonal(A):
-
+    if not esCuadrada(A):
+            raise ValueError("La matriz no es cuadrada")
+    
     D = np.array(A) 
     for i in range(len(D)):
         for j in range(len(D)):
@@ -125,3 +127,45 @@ def esSimetrica(A):
                 return False
             
     return True
+
+######################################################################################################
+#Ejercicio 8. Desarrollar una funci´on calcularAx(A,x) que recibe una matriz
+#A de tama˜no n × m y un vector x de largo m y devuelve un vector b de largo n
+#resultado de la multiplicaci´on vectorial de la matriz y el vector.
+
+def calcularAx(A, x):
+    if not A or not A[0] or len(x)==0:
+        raise ValueError("La matriz A y el vector x no pueden estar vacios")
+
+    if len(x) !=len(A[0]):
+        raise ValueError("Dimensiones incompatibles")
+
+    b=np.zeros(len(A))
+
+    for i in range(len(A)):
+        valorF = 0
+        for j in range(len(A[0])):
+            valorF += A[i][j] * x[j]
+        b[i] = valorF
+
+    return b
+
+######################################################################################################
+#Ejercicio 9. Desarrollar una funci´on intercambiarFilas(A, i, j), 
+#que intercambie las filas i y la j de la matriz A. El intercambio tiene que ser in-place.
+
+def intercambiarFilas(A, i, j):
+    if not A or not A[0]:
+        raise ValueError("La matriz A no es valida")
+
+    if i >= len(A) or i < 0:
+        raise ValueError("no existe fila I")
+    
+    if j >= len(A) or j < 0:
+        raise ValueError("no existe fila J")
+
+    for k in range(len(A[0])):
+        vTemp=A[i][k]
+        A[i][k]=A[j][k]
+        A[j][k]=vTemp
+    #in place no devuelve nada
