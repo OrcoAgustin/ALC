@@ -169,3 +169,124 @@ def intercambiarFilas(A, i, j):
         A[i][k]=A[j][k]
         A[j][k]=vTemp
     #in place no devuelve nada
+
+######################################################################################################
+#Ejercicio 10. Desarrollar una funci´on sumar_fila_multiplo(A, i, j, s)que
+#a la fila i le sume la fila j multiplicada por un escalar s. Esta es una operaci´on
+#elemental clave en la eliminaci´on gaussiana. La operaci´on debe ser in-place.
+
+def sumarFilaMultiplo(A, i, j, s):
+    if not A or not A[0]:
+        raise ValueError("La matriz A no es valida")
+
+    if i >= len(A) or i < 0:
+        raise ValueError("no existe fila I")
+    
+    if j >= len(A) or j < 0:
+        raise ValueError("no existe fila J")
+
+    for k in range(len(A)):
+        A[i][k] += A[j][k] * s
+
+######################################################################################################
+#Ejercicio 11. Desarrollar una funci´on esDiagonalmenteDominante(A) que de
+#vuelva True si una matriz cuadrada A es estrictamente diagonalmente dominante. 
+#Esto ocurre si para cada fila, el valor absoluto del elemento en la diagonal
+#es mayor que la suma de los valores absolutos de los dem´as elementos en esa fila
+
+#aux
+def abs(n):
+    if n < 0:
+        n = -n
+    return n
+
+def esDiagonalmenteDominante(A):
+    if not esCuadrada(A):
+        raise ValueError("matriz no valida")
+
+    for i in range(len(A[0])):
+        sumaFila = 0
+        vDiag = abs(A[i][i])
+        for j in range(len(A[0])):
+            if j !=i:
+                sumaFila =+ A[i][j]
+        if sumaFila>vDiag:
+            return False
+
+    return True                 
+
+######################################################################################################
+#Ejercicio 12. Desarrollar una funci´on matrizCirculante(v) que genere una
+#matriz circulante a partir de un vector. En una matriz circulante la primer fila
+#es igual al vector v, y en cada fila se encuentra una permutaci´on c´ıclica de la
+#fila anterior, moviendo los elementos un lugar hacia la derecha
+
+def matrizCirculante(v):
+    base = [[0 for _ in range(len(v))] for _ in range(len(v))]
+
+    A = np.array(base)
+    A[0]=v
+
+    for i in range(1, len(A)):
+        ultimo=v.pop()
+        v.insert(0,ultimo)
+        A[i] = v
+    return A
+
+######################################################################################################
+#Ejercicio 13. Desarrollar una funci´on matrizVandermonde(v), donde v ∈ Rn
+#y se devuelve la matriz de Vandermonde V ∈ Rn×n cuya fila i-´esima corresponde
+#con la potencias (i − 1)-´esima de los elementos de v.
+
+#aux
+def potencia(n, p):
+    potencia=1
+    for i in range(p):
+        potencia=potencia*n
+    return potencia
+
+def matrizVandermonde(v):
+    base = [[0 for _ in range(len(v))] for _ in range(len(v))]
+    A=np.array(base)
+
+    for i in range(len(v)):
+        fila = []
+        for j in range(len(v)):
+            fila.append(potencia(v[j],i))
+        A[i]=fila
+    return A
+
+#esto se puede recontra optimizar pero por ahora va
+######################################################################################################
+#Ejercicio 14. Desarrollar una funci´on numeroAureo(n) que estime el n´umero
+#aureo ϕ como Fk+1/Fk, siendo Fk el k-´esimo n´umero de la sucesi´on de Fibonacci.
+#Para esto, formulen la sucesi´on de Fibonacci Fk+1 = Fk +Fk−1 de forma matricial,
+# usando la semilla F0 = 0,F1 = 1. Grafique el valor aproximado de ϕ en
+# funci´on del n´umero de pasos de la sucesi´on considerado.
+
+#def numeroAureo(n):
+
+######################################################################################################
+#Ejercicio 15. Desarrollar una funci´on matrizFiboncacci(n), que genera una
+#matriz A de n×n, y cada aij = Fi+j, siendo Fk el k-´esimo n´umero de la sucesi´on
+#de Fibonacci (considerando F0 = 0,F1 = 1).
+
+#aux
+def fibonacci(n):
+    if n == 0:
+        return 0
+    if n == 1: 
+        return 1
+    x1, x2 = 0, 1
+    for i in range(2,n +1):
+      x1, x2 = x2, x1 + x2
+    return x2
+        
+print(fibonacci(8))
+
+
+def matrizFiboncacci(n):
+    base = [[0 for _ in range(n)] for _ in range(n)]
+    A=np.array(base)
+    return 1
+    
