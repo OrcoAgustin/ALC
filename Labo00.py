@@ -282,11 +282,50 @@ def fibonacci(n):
       x1, x2 = x2, x1 + x2
     return x2
         
-print(fibonacci(8))
-
-
 def matrizFiboncacci(n):
+    if n<0:
+        raise ValueError("n menor que 0")
+
     base = [[0 for _ in range(n)] for _ in range(n)]
     A=np.array(base)
-    return 1
     
+    for i in range(len(A)):
+        for j in range(len(A)):
+            A[i][j] = fibonacci(i+j)
+
+    return A
+
+######################################################################################################
+#Ejercicio 16. Desarrollar una funci´on matrizHilbert(n), que genera una matriz
+# de Hilbert H de n×n, y cada hij = 1/(i+j+1).
+
+def matrizHilbert(n):
+    if n<=0:
+        raise ValueError("n menor que 1")
+    
+    H=np.empty((n,n), dtype=float)
+    #vale esto de aca arriba? preguntar
+
+    for i in range(len(H)):
+        for j in range(len(H)):
+            H[i][j] = 1.0/(i+j+1)
+
+    return H
+
+######################################################################################################
+#Ejercicio 17. Usando las funciones previamente desarrolladas donde sea posible, 
+#escriba una rutina que calcule los valores entre-1 y 1 de los siguientes
+#polinomios:
+#x^5 −x^4+x^3−x^2+x−1
+#x^2 +3
+#x^10 −2
+#Grafique el valor de los polinomios en el rango indicado, y calcule la cantidad
+#de operaciones necesarias y el espacio en memoria para generar 100 puntos
+#equiespaciados entre-1 y 1. ¿C´omo crecen estos valores con n? ¿Qu´e modificar´ıa
+#para hacer el c´alculo m´as eficiente?
+
+######################################################################################################
+#Ejercicio 18. Modificar la funci´on row_echelon de manera que evalue en cada
+#pivot si no hay otro elemento de la misma columna con m´odulo mayor (en valor
+#absoluto). En caso afirmativo hacer el swap de las filas. Esta operatoria permite
+#tener mayor estabilidad num´erica
