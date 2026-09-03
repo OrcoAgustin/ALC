@@ -1,3 +1,6 @@
+from matplotlib import projections
+from copy import Error
+from numpy._core import einsumfunc
 import numpy as np
 
 
@@ -15,7 +18,7 @@ def error(x, y):
 
 def errorRelativo(x, y):
     if x == 0:
-        raise ZeroDivisionError("El valor de x no puede ser 0")
+        return Error 
     else:
         return abs(x - y) / abs(x)
 
@@ -26,13 +29,13 @@ def errorRelativo(x, y):
 
 
 def matricesIguales(A, B):
-
-    try:
-        return np.allclose(A, B)
-    except ValueError:
-        # preguntar si vale usar el all close de np
+    if(len(A) != len(B) or len(A[0]) != len(B[0])):
         return False
-
+    for i in range(len(A)):
+        for j in range(len(A[0])):
+            if not(np.isClose(A[i][j],B[i][j])):
+                return False
+    return True
 
 ###### Pruebas de laboratorio 1 ##############################################################
 
@@ -92,7 +95,7 @@ def escala(s):
 # y retorna una matriz de 2x2 que rota el vector en un ángulo theta
 # y luego lo escala en un factor s.
 
-
+"""
 def rota_y_escala(theta, s):
     rotado = rota(theta)
     escalado = escala(s)
@@ -100,21 +103,22 @@ def rota_y_escala(theta, s):
 
 
 """
-version sin funciones
+#version sin funciones
 
 def rota_y_escala(theta, s):
     
-    %Recibe un ángulo theta y una tira de números s, y retorna una matriz de 2 x 2 que rota el vector en un ángulo theta y luego lo escala en un factor s
-    
-    escalado = np.zeros((len(s), len(s)))
-    for i in range(len(s)):
-        escalado[i, i] = s[i]
+    #Recibe un ángulo theta y una tira de números s, y retorna una matriz de 2 x 2 que rota el vector en un ángulo theta y luego lo escala en un factor s
+
+    escalado = np.zeros((2,2))
+    escalado[0][0]=s[0]
+    escalado[1][1]=s[1]
     rotacion = np.array(
         [[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]]
     )
+
     res = np.array(escalado @ rotacion)
     return res
-"""
+
 
 
 #############################################################################################
@@ -160,7 +164,7 @@ def afin(theta,s,b):
 # Retorna el vector w resultante de aplicar la transformación afín a v.
 
 
-def transafin(v, theta, s, b):
+def trans_afin(v, theta, s, b):
     A = afin(theta, s, b)
     vExtendida = np.array([v[0], v[1], 1])
     res = A @ vExtendida
@@ -214,11 +218,11 @@ assert np.allclose(
 
 assert np.allclose(afin(0, [2, 3], [1, 1]), np.array([[2, 0, 1], [0, 3, 1], [0, 0, 1]]))
 
-# Tests para transafin
+# Tests para trans_afin
 assert np.allclose(
-    transafin(np.array([1, 0]), np.pi / 2, [1, 1], [0, 0]), np.array([0, 1])
+    trans_afin(np.array([1, 0]), np.pi / 2, [1, 1], [0, 0]), np.array([0, 1])
 )
-assert np.allclose(transafin(np.array([1, 1]), 0, [2, 3], [0, 0]), np.array([2, 3]))
+assert np.allclose(trans_afin(np.array([1, 1]), 0, [2, 3], [0, 0]), np.array([2, 3]))
 assert np.allclose(
-    transafin(np.array([1, 0]), np.pi / 2, [3, 2], [4, 5]), np.array([4, 7])
+    trans_afin(np.array([1, 0]), np.pi / 2, [3, 2], [4, 5]), np.array([4, 7])
 )
