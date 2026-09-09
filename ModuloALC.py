@@ -276,10 +276,21 @@ def normaliza(X, p):
 
 
 #############################################################################################
+"""
+def norma(x, p):
+    # la norma p del vector x.
+    # asumo que no van a pasar p<1
 
-
-import numpy as np
-
+    # si p es inf
+    if p == float("inf") or p == np.inf or str(p).lower() == "inf":
+        return np.max(np.abs(x))
+    # resto de casos
+    x = np.array(x)
+    norma = 0
+    for i in range(len(x)):
+        norma += abs(x[i]) ** p
+    return norma ** (1 / p)
+"""
 
 def normaMatMC(A, q, p, Np):
     n = A.shape[1]
