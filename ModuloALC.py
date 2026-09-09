@@ -250,8 +250,12 @@ def norma(x, p):
 """
 def norma(x, p):
     # la norma p del vector x.
-    if p < 1:
-        return "error, p debe ser mayor o igual a 1"
+    # asumo que no van a pasar p<1
+
+    # si p es inf
+    if p == float("inf") or p == np.inf or str(p).lower() == "inf":
+        return np.max(np.abs(x))
+    # resto de casos
     x = np.array(x)
     norma = 0
     for i in range(len(x)):
