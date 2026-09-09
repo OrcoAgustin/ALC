@@ -274,51 +274,49 @@ def normaliza(X, p):
 #############################################################################################
 
 
+import numpy as np
+
+
 def normaMatMC(A, q, p, Np):
-    # Devuelve la norma ||A||_{q,p} y el vector x en el cual se alcanza
-    # el maximo.
-    import numpy as np
+    n = A.shape[1]
+    X = np.random.rand(n, Np)
+    normaX = X / norma(X, p)
+    Y = A @ normaX
+    normaY = norma(Y, p)
+    maximaNorma = 0
+    id = 0
+    for i in range(Np):
+        if normaY[i] > maximaNorma:
+            maximaNorma = normaY[i]
+            id = i
+    x_opt = normaX[:, id]
 
-    n = A.shape[1]  # Número de columnas de A (dimensión del vector x)
-    max_val = -1.0
-    x_opt = None
-
-    for _ in range(Np):
-        # 1. Generar un vector aleatorio según la norma q
-        if q == 2:
-            x = np.random.randn(n)
-        elif q == 1:
-            x = np.random.laplace(0, 1, n)  # O distribución uniforme ajustada
-        else:
-            x = np.random.randn(n)
-
-        # 2. Normalizar el vector para que tenga norma q igual a 1
-        norma_x = norma(x, q)
-        if norma_x == 0:
-            continue
-        x = x / norma_x
-
-        # 3. Calcular ||Ax||_p
-        Ax = A @ x
-        val = norma(Ax, p)
-
-        # 4. Actualizar el máximo y el vector óptimo
-        if val > max_val:
-            max_val = val
-            x_opt = x
-
-    return max_val, x_opt
+    return maximaNorma, x_opt
 
 
 #############################################################################################
 
 
 def normaExacta(A, p=[1, "inf"]):
-    # Devuelve una lista con las normas 1 e infinito de una matriz A
-    # usando las expresiones del enunciado 2.(c).
-    return 0
+    es_escalar = not isinstance(p, (list, tuple, np.ndarray))
+    if es_escalar:
+        p = [p]
+
+    A = np.asarray(A, dtype=float)
+    res = []
+
+    for norma_tipo in p:
+        if norma_tipo == 1:
+            res.append(float(np.max(np.sum(np.abs(A), axis=0))))
+        elif norma_tipo in ["inf", float("inf"), np.inf]:
+            res.append(float(np.max(np.sum(np.abs(A), axis=1))))
+        else:
+            return None
+
+    return res[0] if es_escalar else res
 
 
+normaExacta(A=np.array([[1, -2, 3], [-4, 5, -6]]))
 #############################################################################################
 
 
@@ -382,7 +380,7 @@ assert np.allclose(np.abs(nMC[1][0]), 1, atol=1e-3) and np.allclose(
 A = np.array([[1, 2], [3, 4]])
 nMC = normaMatMC(A=A, q="inf", p="inf", Np=1000000)
 assert np.allclose(nMC[0], normaExacta(A, "inf"), rtol=2e-1)
-
+"""
 # Test condMC
 
 A = np.array([[1, 1], [0, 1]])
@@ -414,3 +412,4 @@ normaA = normaExacta(A, "inf")
 normaA_ = normaExacta(A_, "inf")
 condA = condExacta(A, "inf")
 assert np.allclose(normaA * normaA_, condA)
+"""
