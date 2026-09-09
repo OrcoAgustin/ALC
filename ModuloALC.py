@@ -313,25 +313,23 @@ def normaMatMC(A, q, p, Np):
 
 
 def normaExacta(A, p=[1, "inf"]):
-    es_escalar = not isinstance(p, (list, tuple, np.ndarray))
-    if es_escalar:
-        p = [p]
+    pCorrecto = p == [1, "inf"] or p==1 or p=="inf"
+    if not pCorrecto:
+        return None
 
     A = np.asarray(A, dtype=float)
-    res = []
 
-    for norma_tipo in p:
-        if norma_tipo == 1:
-            res.append(float(np.max(np.sum(np.abs(A), axis=0))))
-        elif norma_tipo in ["inf", float("inf"), np.inf]:
-            res.append(float(np.max(np.sum(np.abs(A), axis=1))))
-        else:
-            return None
+    n1= float(np.max(np.sum(np.abs(A), axis=0)))
+    ninf= float(np.max(np.sum(np.abs(A), axis=1)))
+    res=[n1,ninf]
+    
+    if p==1:
+        return res[0]
+    elif p=="inf":
+        return res[1]    
+    else:
+        return res  
 
-    return res[0] if es_escalar else res
-
-
-normaExacta(A=np.array([[1, -2, 3], [-4, 5, -6]]))
 #############################################################################################
 
 
