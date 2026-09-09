@@ -1,6 +1,3 @@
-from matplotlib import projections
-from copy import Error
-from numpy._core import einsumfunc
 import numpy as np
 
 
@@ -18,7 +15,7 @@ def error(x, y):
 
 def errorRelativo(x, y):
     if x == 0:
-        return Error 
+        return error
     else:
         return abs(x - y) / abs(x)
 
@@ -29,13 +26,14 @@ def errorRelativo(x, y):
 
 
 def matricesIguales(A, B):
-    if(len(A) != len(B) or len(A[0]) != len(B[0])):
+    if len(A) != len(B) or len(A[0]) != len(B[0]):
         return False
     for i in range(len(A)):
         for j in range(len(A[0])):
-            if not(np.isClose(A[i][j],B[i][j])):
+            if not (np.isclose(A[i][j], B[i][j])):
                 return False
     return True
+
 
 ###### Pruebas de laboratorio 1 ##############################################################
 
@@ -103,22 +101,22 @@ def rota_y_escala(theta, s):
 
 
 """
-#version sin funciones
+# version sin funciones
+
 
 def rota_y_escala(theta, s):
-    
-    #Recibe un ángulo theta y una tira de números s, y retorna una matriz de 2 x 2 que rota el vector en un ángulo theta y luego lo escala en un factor s
 
-    escalado = np.zeros((2,2))
-    escalado[0][0]=s[0]
-    escalado[1][1]=s[1]
+    # Recibe un ángulo theta y una tira de números s, y retorna una matriz de 2 x 2 que rota el vector en un ángulo theta y luego lo escala en un factor s
+
+    escalado = np.zeros((2, 2))
+    escalado[0][0] = s[0]
+    escalado[1][1] = s[1]
     rotacion = np.array(
         [[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]]
     )
 
     res = np.array(escalado @ rotacion)
     return res
-
 
 
 #############################################################################################
@@ -226,3 +224,193 @@ assert np.allclose(trans_afin(np.array([1, 1]), 0, [2, 3], [0, 0]), np.array([2,
 assert np.allclose(
     trans_afin(np.array([1, 0]), np.pi / 2, [3, 2], [4, 5]), np.array([4, 7])
 )
+
+
+#############################################################################################
+##### Laboratorio 3 #########################################################################
+#############################################################################################
+
+
+def norma(x, p):
+    # la norma p del vector x.
+    # asumo que no van a pasar p<1
+
+    # si p es inf
+    if p == float("inf") or p == np.inf or str(p).lower() == "inf":
+        return np.max(np.abs(x))
+    # resto de casos
+    x = np.array(x)
+    norma = 0
+    for i in range(len(x)):
+        norma += abs(x[i]) ** p
+    return norma ** (1 / p)
+
+
+#############################################################################################
+"""
+def norma(x, p):
+    # la norma p del vector x.
+    if p < 1:
+        return "error, p debe ser mayor o igual a 1"
+    x = np.array(x)
+    norma = 0
+    for i in range(len(x)):
+        norma += abs(x[i]) ** p
+    return norma ** (1 / p)
+"""
+
+
+def normaliza(X, p):
+    # Recibe X, una lista de vectores no vacios , y un escalar p. Devuelve
+    # una lista donde cada elemento corresponde a normalizar los
+    # elementos de X con la norma p.
+
+    res = []
+    for x in X:
+        res.append(x / norma(x, p))
+    return res
+
+
+#############################################################################################
+
+
+def normaMatMC(A, q, p, Np):
+    # Devuelve la norma ||A||_{q,p} y el vector x en el cual se alcanza
+    # el maximo.
+    import numpy as np
+
+    n = A.shape[1]  # Número de columnas de A (dimensión del vector x)
+    max_val = -1.0
+    x_opt = None
+
+    for _ in range(Np):
+        # 1. Generar un vector aleatorio según la norma q
+        if q == 2:
+            x = np.random.randn(n)
+        elif q == 1:
+            x = np.random.laplace(0, 1, n)  # O distribución uniforme ajustada
+        else:
+            x = np.random.randn(n)
+
+        # 2. Normalizar el vector para que tenga norma q igual a 1
+        norma_x = norma(x, q)
+        if norma_x == 0:
+            continue
+        x = x / norma_x
+
+        # 3. Calcular ||Ax||_p
+        Ax = A @ x
+        val = norma(Ax, p)
+
+        # 4. Actualizar el máximo y el vector óptimo
+        if val > max_val:
+            max_val = val
+            x_opt = x
+
+    return max_val, x_opt
+
+
+#############################################################################################
+
+
+def normaExacta(A, p=[1, "inf"]):
+    # Devuelve una lista con las normas 1 e infinito de una matriz A
+    # usando las expresiones del enunciado 2.(c).
+    return 0
+
+
+#############################################################################################
+
+
+def condMC(A, p):
+    # Devuelve el numero de condicion de A usando la norma inducida p.
+    return 0
+
+
+#############################################################################################
+
+
+def condExacta(A, p):
+    # Que devuelve el numero de condicion de A a partir de la formula de
+    # l a ecuacion (1) usando la norma p.
+    return 0
+
+
+#############################################################################################
+# pruebas labo 3
+# Tests norma
+assert np.allclose(norma(np.array([1, 1]), 2), np.sqrt(2))
+assert np.allclose(norma(np.array([1] * 10), 2), np.sqrt(10))
+assert norma(np.random.rand(10), 2) <= np.sqrt(10)
+assert norma(np.random.rand(10), 2) >= 0
+
+# Tests normaliza
+for x in normaliza([np.array([1] * k) for k in range(1, 11)], 2):
+    assert np.allclose(norma(x, 2), 1)
+for x in normaliza([np.array([1] * k) for k in range(2, 11)], 1):
+    print(not np.allclose(norma(x, 2), 1))
+for x in normaliza([np.random.rand(k) for k in range(1, 11)], "inf"):
+    assert np.allclose(norma(x, "inf"), 1)
+
+
+# Tests normaExacta
+
+assert np.allclose(normaExacta(np.array([[1, -1], [-1, -1]]), 1), 2)
+assert np.allclose(normaExacta(np.array([[1, -2], [-3, -4]]), 1), 6)
+assert np.allclose(normaExacta(np.array([[1, -2], [-3, -4]]), "inf"), 7)
+assert normaExacta(np.array([[1, -2], [-3, -4]]), 2) is None
+assert normaExacta(np.random.random((10, 10)), 1) <= 10
+assert normaExacta(np.random.random((4, 4)), "inf") <= 4
+
+# Test normaMC
+
+nMC = normaMatMC(A=np.eye(2), q=2, p=1, Np=100000)
+assert np.allclose(nMC[0], 1, atol=1e-3)
+assert np.allclose(np.abs(nMC[1][0]), 1, atol=1e-3) or np.allclose(
+    np.abs(nMC[1][1]), 1, atol=1e-3
+)
+assert np.allclose(np.abs(nMC[1][0]), 0, atol=1e-3) or np.allclose(
+    np.abs(nMC[1][1]), 0, atol=1e-3
+)
+
+nMC = normaMatMC(A=np.eye(2), q=2, p="inf", Np=100000)
+assert np.allclose(nMC[0], np.sqrt(2), atol=1e-3)
+assert np.allclose(np.abs(nMC[1][0]), 1, atol=1e-3) and np.allclose(
+    np.abs(nMC[1][1]), 1, atol=1e-3
+)
+
+A = np.array([[1, 2], [3, 4]])
+nMC = normaMatMC(A=A, q="inf", p="inf", Np=1000000)
+assert np.allclose(nMC[0], normaExacta(A, "inf"), rtol=2e-1)
+
+# Test condMC
+
+A = np.array([[1, 1], [0, 1]])
+A_ = np.linalg.solve(A, np.eye(A.shape[0]))
+normaA = normaMatMC(A, 2, 2, 10000)
+normaA_ = normaMatMC(A_, 2, 2, 10000)
+condA = condMC(A, 2, 10000)
+assert np.allclose(normaA[0] * normaA_[0], condA, atol=1e-3)
+
+A = np.array([[3, 2], [4, 1]])
+A_ = np.linalg.solve(A, np.eye(A.shape[0]))
+normaA = normaMatMC(A, 2, 2, 10000)
+normaA_ = normaMatMC(A_, 2, 2, 10000)
+condA = condMC(A, 2, 10000)
+assert np.allclose(normaA[0] * normaA_[0], condA, atol=1e-3)
+
+# Test condExacta
+
+A = np.random.rand(10, 10)
+A_ = np.linalg.solve(A, np.eye(A.shape[0]))
+normaA = normaExacta(A, 1)
+normaA_ = normaExacta(A_, 1)
+condA = condExacta(A, 1)
+assert np.allclose(normaA * normaA_, condA)
+
+A = np.random.rand(10, 10)
+A_ = np.linalg.solve(A, np.eye(A.shape[0]))
+normaA = normaExacta(A, "inf")
+normaA_ = normaExacta(A_, "inf")
+condA = condExacta(A, "inf")
+assert np.allclose(normaA * normaA_, condA)
