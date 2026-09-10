@@ -276,46 +276,69 @@ def normaliza(X, p):
 
 
 #############################################################################################
-"""
-def norma(x, p):
-    # la norma p del vector x.
-    # asumo que no van a pasar p<1
 
-    # si p es inf
-    if p == float("inf") or p == np.inf or str(p).lower() == "inf":
-        return np.max(np.abs(x))
-    # resto de casos
-    x = np.array(x)
-    norma = 0
-    for i in range(len(x)):
-        norma += abs(x[i]) ** p
-    return norma ** (1 / p)
-"""
+
+def normaMC(x, p):
+    x = np.asarray(x, dtype=float)
+    is_inf = p == float("inf") or p == np.inf or str(p).lower() == "inf"
+
+    # Si x es una matriz (2D)
+    if x.ndim == 2:
+        filas, cols = x.shape
+        normas = np.zeros(cols)
+        for j in range(cols):
+            if is_inf:
+                max_val = abs(x[0, j])
+                for i in range(1, filas):
+                    val = abs(x[i, j])
+                    if val > max_val:
+                        max_val = val
+                normas[j] = max_val
+            else:
+                suma = 0.0
+                for i in range(filas):
+                    suma += abs(x[i, j]) ** p
+                normas[j] = suma ** (1 / p)
+        return normas
+
+    # Si x es un vector (1D)
+    if is_inf:
+        max_val = abs(x[0])
+        for i in range(1, len(x)):
+            val = abs(x[i])
+            if val > max_val:
+                max_val = val
+        return max_val
+
+    suma = 0.0
+    for val in x:
+        suma += abs(val) ** p
+    return suma ** (1 / p)
+
 
 def normaMatMC(A, q, p, Np):
     n = A.shape[1]
     X = np.random.rand(n, Np)
-    normaX = X / norma(X, p)
+    normaX = X / normaMC(X, p)
     Y = A @ normaX
-    normaY = norma(Y, p)
-    maximaNorma = 0
+    print(Y)
+    normas = normaMC(Y, q)
+    maxNorma = 0
     id = 0
     for i in range(Np):
-        if normaY[i] > maximaNorma:
-            maximaNorma = normaY[i]
+        if normas[i] > maxNorma:
+            maxNorma = normas[i]
             id = i
-    x_opt = normaX[:, id]
-
-    return maximaNorma, x_opt
+    return maxNorma, normaX[:, id]
 
 
 #############################################################################################
 
 
 def normaExacta(A, p=[1, "inf"]):
-    es_escalar = not isinstance(p, (list, tuple, np.ndarray))
-    if es_escalar:
-        p = [p]
+    pCorrecto = p == [1, "inf"]
+    if not pCorrecto:
+        return None
 
     A = np.asarray(A, dtype=float)
     res = []
@@ -323,30 +346,45 @@ def normaExacta(A, p=[1, "inf"]):
     for norma_tipo in p:
         if norma_tipo == 1:
             res.append(float(np.max(np.sum(np.abs(A), axis=0))))
-        elif norma_tipo in ["inf", float("inf"), np.inf]:
-            res.append(float(np.max(np.sum(np.abs(A), axis=1))))
         else:
-            return None
+            res.append(float(np.max(np.sum(np.abs(A), axis=1))))
 
-    return res[0] if es_escalar else res
-
-
-normaExacta(A=np.array([[1, -2, 3], [-4, 5, -6]]))
-#############################################################################################
-
-
-def condMC(A, p):
-    # Devuelve el numero de condicion de A usando la norma inducida p.
-    return 0
+    return res
 
 
 #############################################################################################
+
+
+def condMC(A, p, Np=10000):
+    # Devuelve el numero de condicion de A usando la norma inducida p (Monte Carlo)
+    normaA, _ = normaMatMC(A, q=p, p=p, Np=Np)
+    A_inv = np.linalg.inv(A)
+    normaA_inv, _ = normaMatMC(A_inv, q=p, p=p, Np=Np)
+    return normaA * normaA_inv
+
+
+#############################################################################################
+def normaExacta(A, p=[1, "inf"]):
+    A = np.asarray(A, dtype=float)
+
+    if isinstance(p, str):
+        p = np.inf if p.strip().lower() == "inf" else float(p)
+
+    if p == 1:
+        return float(np.max(np.sum(np.abs(A), axis=0)))
+    elif p == np.inf:
+        return float(np.max(np.sum(np.abs(A), axis=1)))
+    else:
+        raise ValueError("normaExacta solo admite p=1 o p=inf")
 
 
 def condExacta(A, p):
     # Que devuelve el numero de condicion de A a partir de la formula de
     # l a ecuacion (1) usando la norma p.
-    return 0
+    normaA = normaExacta(A, p)
+    aInversa = np.linalg.inv(A)
+    normaAInversa = normaExacta(aInversa, p)
+    return normaA * normaAInversa
 
 
 #############################################################################################
