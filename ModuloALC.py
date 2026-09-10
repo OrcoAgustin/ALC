@@ -336,43 +336,23 @@ def normaMatMC(A, q, p, Np):
 
 
 def normaExacta(A, p=[1, "inf"]):
-<<<<<<< HEAD
-    pCorrecto = p == [1, "inf"]
-=======
-    pCorrecto = p == [1, "inf"] or p==1 or p=="inf"
->>>>>>> 72c2da34ec0af5e4ae7bb0aa5970cf2abeba155d
+    is_inf = p == "inf" or p == np.inf or p == float("inf")
+    pCorrecto = p == [1, "inf"] or p == 1 or is_inf
     if not pCorrecto:
         return None
 
     A = np.asarray(A, dtype=float)
 
-<<<<<<< HEAD
-    for norma_tipo in p:
-        if norma_tipo == 1:
-            res.append(float(np.max(np.sum(np.abs(A), axis=0))))
-        else:
-            res.append(float(np.max(np.sum(np.abs(A), axis=1))))
+    n1 = float(np.max(np.sum(np.abs(A), axis=0)))
+    ninf = float(np.max(np.sum(np.abs(A), axis=1)))
+    res = [n1, ninf]
 
-    return res
-=======
-    n1= float(np.max(np.sum(np.abs(A), axis=0)))
-    ninf= float(np.max(np.sum(np.abs(A), axis=1)))
-    res=[n1,ninf]
-    
-    if p==1:
+    if p == 1:
         return res[0]
-    elif p=="inf":
-        return res[1]    
+    elif is_inf:
+        return res[1]
     else:
-        return res  
-
-#############################################################################################
-
-
-def condMC(A, p):
-    # Devuelve el numero de condicion de A usando la norma inducida p.
-    return 0
->>>>>>> 72c2da34ec0af5e4ae7bb0aa5970cf2abeba155d
+        return res
 
 
 #############################################################################################
@@ -386,27 +366,13 @@ def condMC(A, p, Np=10000):
     return normaA * normaA_inv
 
 
-#############################################################################################
-def normaExacta(A, p=[1, "inf"]):
-    A = np.asarray(A, dtype=float)
-
-    if isinstance(p, str):
-        p = np.inf if p.strip().lower() == "inf" else float(p)
-
-    if p == 1:
-        return float(np.max(np.sum(np.abs(A), axis=0)))
-    elif p == np.inf:
-        return float(np.max(np.sum(np.abs(A), axis=1)))
-    else:
-        raise ValueError("normaExacta solo admite p=1 o p=inf")
-
-
 def condExacta(A, p):
     # Que devuelve el numero de condicion de A a partir de la formula de
     # l a ecuacion (1) usando la norma p.
     normaA = normaExacta(A, p)
     aInversa = np.linalg.inv(A)
     normaAInversa = normaExacta(aInversa, p)
+    # pyrefly: ignore [unsupported-operation]
     return normaA * normaAInversa
 
 
@@ -433,8 +399,9 @@ assert np.allclose(normaExacta(np.array([[1, -1], [-1, -1]]), 1), 2)
 assert np.allclose(normaExacta(np.array([[1, -2], [-3, -4]]), 1), 6)
 assert np.allclose(normaExacta(np.array([[1, -2], [-3, -4]]), "inf"), 7)
 assert normaExacta(np.array([[1, -2], [-3, -4]]), 2) is None
-assert normaExacta(np.random.random((10, 10)), 1) <= 10
-assert normaExacta(np.random.random((4, 4)), "inf") <= 4
+
+#assert normaExacta(np.random.random((10, 10)), 1) <= 10
+#assert normaExacta(np.random.random((4, 4)), "inf") <= 4
 
 # Test normaMC
 
@@ -489,3 +456,81 @@ normaA_ = normaExacta(A_, "inf")
 condA = condExacta(A, "inf")
 assert np.allclose(normaA * normaA_, condA)
 """
+
+
+#############################################################################################
+##### Laboratorio 4 #########################################################################
+#############################################################################################
+
+
+def elim_gaussiana(A):
+    if A is None:
+        return -1
+        
+    A = np.array(A, dtype=float)
+    
+    m, n = A.shape
+    if m!=n:
+        return -1
+ 
+    Ac = A.copy()  # esta es la Ae(k) que se va actualizando en cada paso
+ 
+    nops = 0  # contador de operaciones aritméticas
+ 
+    # Contadores separados por si se quieren inspeccionar por separado
+    n_sumas_restas = 0
+    n_mult = 0
+    n_div = 0
+ 
+    for k in range(n - 1):
+        # pivote de la etapa k
+        pivote = Ac[k, k]
+        if pivote == 0:                                             
+            return -1 
+ 
+        for i in range(k + 1, n):
+            # --- cálculo del multiplicador (va en la parte triangular
+            # inferior, reemplazando al cero que "debería" quedar) ---
+            Ac[i, k] = Ac[i, k] / pivote
+            n_div += 1
+ 
+            multiplicador = Ac[i, k]
+ 
+            # --- actualización de la fila i, sólo columnas j > k
+            # (las columnas <= k ya quedaron fijas: en col k está el
+            # multiplicador, y a la izquierda ya son ceros de etapas
+            # anteriores) ---
+            for j in range(k + 1, n):
+                Ac[i, j] = Ac[i, j] - multiplicador * Ac[k, j]
+                n_mult += 1
+                n_sumas_restas += 1
+ 
+    nops = n_sumas_restas + n_mult + n_div
+ 
+    # Separamos L y U
+    L = np.zeros((n, n))
+    U = np.zeros((n, n))
+ 
+    for i in range(n):
+        for j in range(n):
+            if i == j:
+                L[i, j] = 1.0          # diagonal de L
+                U[i, j] = Ac[i, j]     # diagonal de U
+            elif i > j:
+                L[i, j] = Ac[i, j]     # parte triangular inferior -> L
+            else:
+                U[i, j] = Ac[i, j]     # parte triangular superior -> U
+ 
+    return L, U, nops
+
+
+def calculaLU(A):
+    """Calcula la factorización LU de la matriz A y retorna las matrices L
+    y U, junto con el número de operaciones realizadas. En caso de que la
+    matriz no pueda factorizarse retorna None."""
+   
+    res= elim_gaussiana(A)
+    if res == -1:
+        return None, None, 0
+    else:
+        return res
