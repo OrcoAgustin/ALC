@@ -336,13 +336,17 @@ def normaMatMC(A, q, p, Np):
 
 
 def normaExacta(A, p=[1, "inf"]):
+<<<<<<< HEAD
     pCorrecto = p == [1, "inf"]
+=======
+    pCorrecto = p == [1, "inf"] or p==1 or p=="inf"
+>>>>>>> 72c2da34ec0af5e4ae7bb0aa5970cf2abeba155d
     if not pCorrecto:
         return None
 
     A = np.asarray(A, dtype=float)
-    res = []
 
+<<<<<<< HEAD
     for norma_tipo in p:
         if norma_tipo == 1:
             res.append(float(np.max(np.sum(np.abs(A), axis=0))))
@@ -350,6 +354,25 @@ def normaExacta(A, p=[1, "inf"]):
             res.append(float(np.max(np.sum(np.abs(A), axis=1))))
 
     return res
+=======
+    n1= float(np.max(np.sum(np.abs(A), axis=0)))
+    ninf= float(np.max(np.sum(np.abs(A), axis=1)))
+    res=[n1,ninf]
+    
+    if p==1:
+        return res[0]
+    elif p=="inf":
+        return res[1]    
+    else:
+        return res  
+
+#############################################################################################
+
+
+def condMC(A, p):
+    # Devuelve el numero de condicion de A usando la norma inducida p.
+    return 0
+>>>>>>> 72c2da34ec0af5e4ae7bb0aa5970cf2abeba155d
 
 
 #############################################################################################
