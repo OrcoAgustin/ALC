@@ -93,31 +93,12 @@ def escala(s):
 # y retorna una matriz de 2x2 que rota el vector en un ángulo theta
 # y luego lo escala en un factor s.
 
-"""
 def rota_y_escala(theta, s):
     rotado = rota(theta)
-    escalado = escala(s)
+    temp = escala(s)
+    escalado=np.zeros((2,2))
+    escalado[0:2,0:2]=temp[0:2,0:2]
     return escalado @ rotado
-
-
-"""
-# version sin funciones
-
-
-def rota_y_escala(theta, s):
-
-    # Recibe un ángulo theta y una tira de números s, y retorna una matriz de 2 x 2 que rota el vector en un ángulo theta y luego lo escala en un factor s
-
-    escalado = np.zeros((2, 2))
-    escalado[0][0] = s[0]
-    escalado[1][1] = s[1]
-    rotacion = np.array(
-        [[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]]
-    )
-
-    res = np.array(escalado @ rotacion)
-    return res
-
 
 #############################################################################################
 # Recibe un ángulo theta, una tira de números s (en R2), y un vector b en R2.
