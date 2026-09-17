@@ -163,6 +163,28 @@ def esSDP(A, atol=1e-8):
             return False
     return True
     
+#6) Cholesky
+def calculaCholesky(A,atol=1e-10):
+    """
+    Verifica si la matriz A es SDP y en caso afirmativo devuelve la matriz R asociada a A, tal que A = R @ R.T.
+    """
+    if not esSDP(A,atol):
+        return None
+    
+    n=A.shape[0]
+
+    L,D,V=calculaLDV(A)
+    if L is None or D is None or V is None:
+        return None
+
+    R = L
+    for j in range(n):
+        for i in range(j, n): 
+            R[i, j] = R[i, j] * np.sqrt(D[j, j])
+    return R    
+
+
+
 
 
 ###Tests###
@@ -335,3 +357,49 @@ assert(esSDP(A,1e-3))
 print("-----ÉXITO!!!!\n")
 print("---FINALIZADO LABO 4!---")
 
+# TESTS Cholesky
+print("TESTS calculaCholesky")
+
+# 1. Test básico con matriz simétrica y definida positiva conocida
+L0 = np.array([[2, 0, 0],
+               [1, 3, 0],
+               [4, 2, 1]])
+A = L0 @ L0.T
+L = calculaCholesky(A)
+assert(L is not None)
+assert(np.allclose(L, L0))
+# Verificar que L es triangular inferior
+assert(np.allclose(L, np.tril(L)))
+
+
+# 2. Test con matriz construida a partir de L0
+L0 = np.array([[1, 0, 0],
+               [0.5, 1.001, 0],
+               [1, 1, 1]])
+A = L0 @ L0.T
+L = calculaCholesky(A)
+
+assert(L is not None)
+assert(np.allclose(L, L0))       
+
+# 3. Test con matriz no simétrica (debe fallar y devolver None)
+A_no_simetrica = np.array([[4, 2, 1],
+                           [1, 3, 0],
+                           [4, 2, 1]])
+assert(calculaCholesky(A_no_simetrica) is None)
+
+
+# 4. Test con matriz simétrica pero NO definida positiva (autovalores negativos o nulos)
+# Matriz con determinante negativo / autovalores no estrictamente positivos
+A_no_dp = np.array([[1, 2, 1],
+                    [2, 1, 2],
+                    [1, 2, 1]])
+assert(calculaCholesky(A_no_dp) is None)
+
+
+# 5. Test con entradas inválidas
+assert(calculaCholesky(None) is None)
+# Matriz rectangular
+assert(calculaCholesky(np.array([[1, 2, 3], [4, 5, 6]])) is None)
+
+print("-----ÉXITO CHOLESKY!!!!\n")
