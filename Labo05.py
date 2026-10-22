@@ -147,8 +147,52 @@ def QR_con_HH(A,tol=1e-12,extras=False):
         'R_matrices': lista de las matrices R en cada paso
         'Q_matrices': lista de las matrices Q en cada paso
 
-
     """
+
+    A = np.asarray(A, dtype=float)
+
+    if A.ndim != 2:
+        return None
+
+    m, n = A.shape
+    if m < n:
+        return None
+
+    Q = np.eye(m)
+    R = A.copy()
+    R_matrices = []
+    Q_matrices = []
+
+    for k in range(n):
+        x = R[k:, k].copy()
+        norma_x = np.linalg.norm(x)
+
+        if norma_x <= tol:
+            R[k:, k] = 0.0
+        else:
+            alpha = -np.copysign(norma_x, x[0])
+            v = x.copy()
+            v[0] -= alpha
+            beta = 2.0 / np.dot(v, v)
+
+            R[k:, k:] -= beta * np.outer(v, v @ R[k:, k:])
+            Q[:, k:] -= beta * np.outer(Q[:, k:] @ v, v)
+
+        if extras:
+            R_matrices.append(R.copy())
+            Q_matrices.append(Q.copy())
+
+    R[np.abs(R) < tol] = 0.0
+
+    if extras:
+        extra_info = {
+            "R_matrices": R_matrices,
+            "Q_matrices": Q_matrices,
+        }
+        return Q, R, extra_info
+
+    return Q, R
+
 def calculaQR(A,metodo='RH',tol=1e-12):
     """
     A una matriz de n x n 
@@ -156,9 +200,16 @@ def calculaQR(A,metodo='RH',tol=1e-12):
     metodo = ['RH','GS'] usa reflectores de Householder (RH) o Gram Schmidt (GS) para realizar la factorizacion
     retorna matrices Q y R calculadas con Gram Schmidt (y como tercer argumento opcional, el numero de operaciones)
     Si el metodo no esta entre las opciones, retorna None
-    """
 
-    
+    """
+    if metodo == "RH":
+        return QR_con_HH(A, tol=tol)
+    if metodo == "GS":
+        return QR_con_GS(A, tol=tol)
+    return None
+
+
+
 ###tests###
 
 # --- Matrices de prueba ---
@@ -193,7 +244,6 @@ check_QR(Q3,R3,A3)
 Q4,R4 = QR_con_GS(A4)
 check_QR(Q4,R4,A4)
 print("pasaste los tests del ej 1")
-"""
 # --- TESTS PARA QR_by_HH ---
 Q2h,R2h = QR_con_GS(A2)
 check_QR(Q2h,R2h,A2)
@@ -213,4 +263,3 @@ check_QR(Q3c,R3c,A3)
 
 Q4c,R4c = calculaQR(A4,metodo='RH')
 check_QR(Q4c,R4c,A4)
-"""
