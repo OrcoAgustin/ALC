@@ -1,125 +1,131 @@
 import numpy as np
 
+
+# aux
 def elim_gaussiana(A):
     if A is None:
-        return -1
-        
-    A = np.array(A, dtype=float)
-    
-    m, n = A.shape
-    if m!=n:
-        return -1
- 
-    Ac = A.copy()  # esta es la Ae(k) que se va actualizando en cada paso
- 
-    nops = 0  # contador de operaciones aritméticas
- 
-    # Contadores separados por si se quieren inspeccionar por separado
-    n_sumas_restas = 0
-    n_mult = 0
-    n_div = 0
- 
-    for k in range(n - 1):
-        # pivote de la etapa k
-        pivote = Ac[k, k]
-        if pivote == 0:                                             
-            return -1 
- 
-        for i in range(k + 1, n):
-            # --- cálculo del multiplicador (va en la parte triangular
-            # inferior, reemplazando al cero que "debería" quedar) ---
-            Ac[i, k] = Ac[i, k] / pivote
-            n_div += 1
- 
-            multiplicador = Ac[i, k]
- 
-            # --- actualización de la fila i, sólo columnas j > k
-            # (las columnas <= k ya quedaron fijas: en col k está el
-            # multiplicador, y a la izquierda ya son ceros de etapas
-            # anteriores) ---
-            for j in range(k + 1, n):
-                Ac[i, j] = Ac[i, j] - multiplicador * Ac[k, j]
-                n_mult += 1
-                n_sumas_restas += 1
- 
-    nops = n_sumas_restas + n_mult + n_div
- 
-    # Separamos L y U
-    L = np.zeros((n, n))
-    U = np.zeros((n, n))
- 
-    for i in range(n):
-        for j in range(n):
-            if i == j:
-                L[i, j] = 1.0          # diagonal de L
-                U[i, j] = Ac[i, j]     # diagonal de U
-            elif i > j:
-                L[i, j] = Ac[i, j]     # parte triangular inferior -> L
-            else:
-                U[i, j] = Ac[i, j]     # parte triangular superior -> U
- 
-    return L, U, nops
-
-
-def calculaLU(A):
-    """Calcula la factorización LU de la matriz A y retorna las matrices L
-    y U, junto con el número de operaciones realizadas. En caso de que la
-    matriz no pueda factorizarse retorna None."""
-   
-    res= elim_gaussiana(A)
-    if res == -1:
         return None, None, 0
+
+    cant_op = 0
+    m = A.shape[0]
+    n = A.shape[1]
+    Ac = A.copy()
+
+    if m != n:
+        return None, None, 0
+
+    ## desde aqui -- CODIGO A COMPLETAR
+    L = np.eye(n)
+
+    for k in range(n - 1):
+        pivote = Ac[k, k]
+        if np.isclose(pivote, 0):
+            return None, None, 0
+
+        for i in range(k + 1, n):
+            # 1 división para el multiplicador
+            m_ik = Ac[i, k] / pivote
+            cant_op += 1
+
+            L[i, k] = m_ik
+            Ac[i, k] = 0.0  # El elemento debajo del pivote se hace 0
+
+            # Actualización del resto de la fila i
+            for j in range(k + 1, n):
+                Ac[i, j] -= m_ik * Ac[k, j]
+                cant_op += 2  # 1 multiplicación + 1 resta
+
+    U = Ac
+
+    ## hasta aqui, calculando L, U y la cantidad de operaciones sobre
+    ## la matriz Ac
+
+    return L, U, cant_op
+
+
+# 1)
+def calculaLU(A):
+    """
+    Calcula la factorizacion LU de la matriz A y retorna las matrices L
+    y U, junto con el numero de operaciones realizadas. En caso de
+    que la matriz no pueda factorizarse retorna None.
+    """
+    resultado = elim_gaussiana(A)
+    if resultado is None:
+        L = None
+        U = None
+        cant_oper = 0
     else:
-        return res
-    
-print("TESTS calculaLU")
+        L, U, cant_oper = resultado
 
-L0 = np.array([[1,0,0],
-               [0,1,0],
-               [1,1,1]])
-
-U0 = np.array([[10,1,0],
-               [0,2,1],
-               [0,0,1]])
-
-A =  L0 @ U0
-L,U,nops = calculaLU(A)
-assert(np.allclose(L,L0))
-assert(np.allclose(U,U0))
+    return L, U, cant_oper
 
 
-L0 = np.array([[1,0,0],
-               [1,1.001,0],
-               [1,1,1]])
+# 4)
+def calculaLDV(A):
+    """
+    Calcula la factorizacion LDV de la matriz A, de forma tal que A =
+    LDV, con L triangular inferior, D diagonal y V triangular
+    superior. En caso de que la matriz no pueda factorizarse
+    retorna None .
+    """
+    L, U, cant_oper = calculaLU(A)
+    # check por si no tiene lu
+    if L is None or U is None:
+        return None, None, None
+    # check por si no se puede hacer ldv
+    for i in range(U.shape[0]):
+        if np.isclose(U[i, i], 0):
+            return None, None, None
+    n = np.shape(L)[0]
 
-U0 = np.array([[1,1,1],
-               [0,1,1],
-               [0,0,1]])
-A =  L0 @ U0
-L,U,nops = calculaLU(A)
-assert(not np.allclose(L,L0))
-assert(not np.allclose(U,U0))
-assert(np.allclose(L,L0,atol=1e-3))
-assert(np.allclose(U,U0,atol=1e-3))
-assert(nops == 13)
+    # creo y relleno d con la diag de u
+    D = np.zeros((n, n))
+    for i in range(n):
+        D[i, i] = U[i, i]
 
-L0 = np.array([[1,0,0],
-               [1,1,0],
-               [1,1,1]])
+    # creo y relleno v dividiendo la fila por el factor
+    V = np.zeros((n, n))
+    for i in range(n):
+        V[i, :] = U[i, :] / U[i, i]
 
-U0 = np.array([[1,1,1],
-               [0,0,1],
-               [0,0,1]])
+    return L, D, V
 
-A =  L0 @ U0
-L,U,nops = calculaLU(A)
-assert(L is None)
-assert(U is None)
-assert(nops == 0)
 
-assert(calculaLU(None) == (None, None, 0))
+# 5)
+def esSDP(A, atol=1e-8):
+    """
+    Checkea si la matriz A es simetrica definida positiva (SDP) usando
+    la factorizacion LDV.
+    """
+    L, D, V = calculaLDV(A)
+    if L is None or D is None or V is None:
+        return False
+    for i in range(A.shape[0]):
+        if np.isclose(D[i, i], 0, atol=atol) or D[i, i] < 0:
+            return False
+    return True
 
-assert(calculaLU(np.array([[1,2,3],[4,5,6]])) == (None, None, 0))
 
-print("-----ÉXITO!!!!\n")
+print("-----Check de sdp\n")
 
+D0 = np.diag([1, -1, 1])
+print(esSDP(D0))
+# False
+D0 = np.diag([1, 1, 1e-16])
+print(esSDP(D0))
+# False
+L0 = np.array([[1, 0, 0], [1, 1, 0], [1, 1, 1]])
+D0 = np.diag([1, 1, 1])
+V0 = np.array([[1, 0, 0], [1, 1, 0], [1, 1 + 1e-3, 1]]).T
+A = L0 @ D0 @ V0
+print(esSDP(A, 1e-3))
+# True
+A = np.array([[4.0, 2.0], [2.0, 3.0]])
+print(esSDP(A))
+# True
+A = np.array([[1.0, 2.0], [3.0, 4.0]])
+print(esSDP(A))
+# False
+
+print("-----ÉXITO SDP!!!!\n")
